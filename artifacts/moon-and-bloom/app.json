@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Moon & Bloom",
+    "slug": "moon-and-bloom",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "moon-and-bloom",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "backgroundColor": "#fbf7f2",
+      "image": "./assets/images/icon.png",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {},
+    "web": {
+      "favicon": "./assets/images/icon.png",
+      "output": "static"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
