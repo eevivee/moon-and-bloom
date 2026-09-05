@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useMoon, RemedyCategory } from '@/context/MoonContext';
-import { BrandMark, Card, IconButton, palette, Pill, PrimaryButton, Screen, SectionTitle } from '@/components/MoonUI';
+import { BrandBanner, BrandMark, Card, IconButton, palette, Pill, PrimaryButton, Screen, SectionTitle } from '@/components/MoonUI';
 
 const categories: RemedyCategory[] = ['Teas', 'Herbs', 'Homeopathy', 'Comfort', 'Foods', 'Self-care'];
 
@@ -19,9 +19,9 @@ export default function RemediesScreen() {
     .filter((item) => !normalizedQuery || [item.name, item.description, item.phase, item.category].join(' ').toLowerCase().includes(normalizedQuery))
     .sort((a, b) => a.name.localeCompare(b.name));
   const submit = () => { if (!name.trim()) return; addRemedy({ name: name.trim(), category, description: description.trim() || 'A personal addition to your wellness cabinet.', phase: 'Any phase', favorite: false }); setName(''); setDescription(''); setShowAdd(false); };
-  return <Screen><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-    <View style={styles.header}><BrandMark compact /><IconButton icon="add" label="Add remedy" onPress={() => setShowAdd(true)} /></View>
-    <SectionTitle eyebrow="Your wellness cabinet" title="Remedies & Rituals" />
+  return <Screen><ScrollView style={{ marginHorizontal: -20 }} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+     <BrandBanner><View style={styles.header}><BrandMark /></View></BrandBanner>
+     <SectionTitle eyebrow="Your wellness cabinet" title="Remedies & Rituals" trailing={<IconButton icon="add" label="Add remedy" onPress={() => setShowAdd(true)} />} />
     <Text style={styles.intro}>Keep the things that help you close, personal, and easy to find.</Text>
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRow}>{categories.map((item) => <Pill key={item} label={item} selected={category === item} onPress={() => setCategory(item)} />)}</ScrollView>
     <View style={styles.searchBox}><Ionicons name="search-outline" size={18} color={palette.mutedForeground} /><TextInput value={query} onChangeText={setQuery} placeholder="Search by remedies or keywords" placeholderTextColor={palette.mutedForeground} style={styles.searchInput} returnKeyType="search" autoCapitalize="none" autoCorrect={false} />{query ? <Pressable onPress={() => setQuery('')} hitSlop={8}><Ionicons name="close-circle" size={18} color={palette.mutedForeground} /></Pressable> : null}</View>
@@ -39,7 +39,7 @@ function RemedyCard({ item, onFavorite }: { item: { name: string; description: s
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingBottom: 10 },
+  scroll: { paddingHorizontal: 20, paddingBottom: 10 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   intro: { color: palette.mutedForeground, fontSize: 14, lineHeight: 21, marginTop: -3, marginBottom: 18 },
   categoryRow: { gap: 8, paddingBottom: 3 },
