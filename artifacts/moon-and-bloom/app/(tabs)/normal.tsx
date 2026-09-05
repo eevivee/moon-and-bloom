@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useMoon } from '@/context/MoonContext';
-import { BrandMark, Card, Metric, palette, Screen, SectionTitle } from '@/components/MoonUI';
+import { BrandBanner, BrandMark, Card, Metric, palette, Screen, SectionTitle } from '@/components/MoonUI';
 
 const phaseDefinitions: Record<string, string> = {
   Menstrual: 'The days of your period, when the uterine lining is released. Many people naturally want more rest, warmth, and inward time here.',
@@ -17,8 +17,8 @@ export default function NormalScreen() {
   const entries = Object.values(data.logs);
   const symptomCounts = entries.flatMap((entry) => entry.symptoms).reduce<Record<string, number>>((counts, symptom) => ({ ...counts, [symptom]: (counts[symptom] ?? 0) + 1 }), {});
   const topSymptoms = Object.entries(symptomCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
-  return <Screen><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-    <BrandMark compact />
+  return <Screen><ScrollView style={{ marginHorizontal: -20 }} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+     <BrandBanner><BrandMark /></BrandBanner>
     <SectionTitle eyebrow="Patterns, not predictions" title="My Normal" />
     <Text style={styles.intro}>A small, honest picture of the rhythm you’re building over time.</Text>
     <Card style={styles.rangeCard}>
@@ -44,7 +44,7 @@ export default function NormalScreen() {
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingBottom: 10 },
+  scroll: { paddingHorizontal: 20, paddingBottom: 10 },
   intro: { color: palette.mutedForeground, lineHeight: 21, fontSize: 14, marginTop: -4, marginBottom: 18 },
   rangeCard: { backgroundColor: palette.warm },
   rangeTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
