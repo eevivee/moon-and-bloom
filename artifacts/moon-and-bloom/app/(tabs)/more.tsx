@@ -3,7 +3,7 @@ import { Alert, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Tex
 import { Share } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { daysBetween, formatDate, useMoon } from '@/context/MoonContext';
-import { BrandMark, Card, Metric, palette, PrimaryButton, Screen, SectionTitle } from '@/components/MoonUI';
+import { BrandBanner, BrandMark, Card, Metric, palette, PrimaryButton, Screen, SectionTitle } from '@/components/MoonUI';
 import { YearAtAGlance } from '@/components/YearAtAGlance';
 import {
   connectGitHubBackup,
@@ -58,11 +58,11 @@ export default function MoreScreen() {
   const flowCounts = Object.values(data.logs).filter((entry) => entry.flow !== 'None').reduce<Record<string, number>>((counts, entry) => ({ ...counts, [entry.flow]: (counts[entry.flow] ?? 0) + 1 }), {});
   const commonFlow = Object.entries(flowCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
 
-  return <Screen><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-    <BrandMark compact />
+  return <Screen><ScrollView style={{ marginHorizontal: -20 }} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+     <BrandBanner><BrandMark /></BrandBanner>
     <SectionTitle eyebrow="Your private space" title="More" />
-    <Card style={styles.privacyCard}><View style={styles.lock}><Ionicons name="lock-closed" size={19} color={palette.accentForeground} /></View><View style={styles.privacyCopy}><Text style={styles.privacyTitle}>Private by design</Text><Text style={styles.privacyText}>Your entries stay on this device unless you enable an encrypted GitHub backup. Moon & Bloom does not keep an account or database.</Text></View></Card>
-    <SectionTitle eyebrow="Look back with care" title="Your journal" />
+     <Card style={styles.privacyCard}><View style={styles.lock}><Ionicons name="lock-closed" size={19} color={palette.accentForeground} /></View><View style={styles.privacyCopy}><Text style={styles.privacyTitle}>Private by Design</Text><Text style={styles.privacyText}>Moon & Bloom does not keep an account or cloud database, so your entries stay in your current phone's browser storage. If you switch phones, use "Export my data" here, then "Import my data" on your new phone.</Text></View></Card>
+     <SectionTitle eyebrow="My health and well-being" title="Your Journal" />
     <MenuRow icon="book-open" label="Journal" detail={journalEntries.length ? `${journalEntries.length} logged ${journalEntries.length === 1 ? 'day' : 'days'} to revisit` : 'Notes tied to your cycle days'} onPress={() => setActivePanel('journal')} />
     <MenuRow icon="clock" label="History" detail={periodHistory.length ? `${periodHistory.length} recorded ${periodHistory.length === 1 ? 'period' : 'periods'}` : 'Your cycle history will build here'} onPress={() => setActivePanel('history')} />
     <MenuRow icon="bar-chart-2" label="Insights" detail={topSymptoms.length ? 'Your most noticed patterns' : 'Personal observations, never diagnoses'} onPress={() => setActivePanel('insights')} />
@@ -71,7 +71,7 @@ export default function MoreScreen() {
     <MenuRow icon="upload" label="Export my data" detail="Create a portable JSON backup" onPress={exportData} />
     <MenuRow icon="download" label="Import my data" detail="Restore a previous backup" onPress={() => setShowImport(true)} />
     <Pressable onPress={deleteData} style={styles.deleteRow}><Feather name="trash-2" size={18} color={palette.destructive} /><View><Text style={styles.deleteLabel}>Delete all data</Text><Text style={styles.deleteDetail}>Clear this device and start fresh</Text></View></Pressable>
-    <Text style={styles.version}>Moon & Bloom · a private wellness journal</Text>
+     <Text style={styles.version}>Moon & Bloom - A Private Wellness Journal</Text>
   </ScrollView>
   <Modal visible={!!activePanel} transparent animationType="slide" onRequestClose={() => setActivePanel(null)}><View style={styles.modalBackdrop}><View style={styles.sheet}><View style={styles.sheetHandle} /><View style={styles.sheetHeader}><View><Text style={styles.sheetEyebrow}>YOUR PRIVATE RECORD</Text><Text style={styles.sheetTitle}>{activePanel === 'journal' ? 'Journal' : activePanel === 'history' ? 'History' : activePanel === 'github' ? 'GitHub backup' : 'Insights'}</Text></View><Pressable onPress={() => setActivePanel(null)} hitSlop={10}><Ionicons name="close" size={24} color={palette.mutedForeground} /></Pressable></View>
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.panelContent}>
@@ -201,7 +201,7 @@ function MenuRow({ icon, label, detail, onPress }: { icon: keyof typeof Feather.
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingBottom: 10 },
+  scroll: { paddingHorizontal: 20, paddingBottom: 10 },
   privacyCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: palette.sage, borderColor: palette.sage },
   lock: { width: 38, height: 38, borderRadius: 14, backgroundColor: palette.cream, alignItems: 'center', justifyContent: 'center' },
   privacyCopy: { flex: 1 },
