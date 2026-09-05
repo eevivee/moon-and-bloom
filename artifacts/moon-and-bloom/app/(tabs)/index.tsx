@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useMoon, formatDate } from '@/context/MoonContext';
-import { BrandMark, Card, Metric, palette, Screen, SectionTitle } from '@/components/MoonUI';
+import { BrandBanner, BrandMark, Card, Metric, palette, Screen, SectionTitle } from '@/components/MoonUI';
 
 const phaseDefinitions: Record<string, string> = {
   Menstrual: 'The days of your period, when the uterine lining is released. Many people naturally want more rest, warmth, and inward time here.',
@@ -21,8 +21,8 @@ export default function TodayScreen() {
     Ovulatory: 'A bright, outward-moving moment in your cycle.',
     Luteal: 'A natural invitation to slow down and listen in.',
   };
-  return <Screen><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-    <View style={styles.top}><BrandMark /></View>
+  return <Screen><ScrollView style={{ marginHorizontal: -20 }} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+     <BrandBanner><View style={styles.top}><BrandMark /></View></BrandBanner>
     <Text style={styles.greeting}>{greeting}</Text>
     <Text style={styles.title}>Where You Are Today</Text>
     <Card style={styles.hero}>
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  scroll: { paddingBottom: 10 },
+  scroll: { paddingHorizontal: 20, paddingBottom: 10 },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   greeting: { color: palette.rose, fontSize: 14, fontWeight: '700', marginTop: 30, marginBottom: 5 },
   title: { color: palette.plum, fontSize: 29, lineHeight: 34, fontWeight: '700', fontFamily: 'Georgia', letterSpacing: -0.7, marginBottom: 17 },
