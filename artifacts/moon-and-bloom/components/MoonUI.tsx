@@ -2,6 +2,7 @@ import React, { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { Image } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '@/constants/colors';
 
 export const palette = colors.light;
@@ -16,6 +17,12 @@ export function BrandMark({ compact = false }: { compact?: boolean }) {
       </View>
     </View>
   );
+}
+
+export function BrandBanner({ children }: { children: ReactNode }) {
+  const insets = useSafeAreaInsets();
+  const topPadding = Math.max(insets.top, 32) + 20;
+  return <View style={[styles.brandBanner, { paddingTop: topPadding }]}>{children}</View>;
 }
 
 export function Screen({ children, scroll = true }: { children: ReactNode; scroll?: boolean }) {
@@ -63,13 +70,14 @@ export function Loading() { return <View style={styles.loading}><ActivityIndicat
 export const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.background },
   flex: { flex: 1 },
-  screenInner: { flex: 1, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 118 },
+  screenInner: { flex: 1, paddingHorizontal: 20, paddingBottom: 118 },
+  brandBanner: { marginHorizontal: -20, paddingHorizontal: 20, paddingBottom: 22, backgroundColor: palette.blush, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  brandLogo: { width: 38, height: 38 },
-  brandLogoCompact: { width: 30, height: 30 },
-  brandName: { color: palette.plum, fontSize: 16, fontWeight: '700', fontFamily: 'Georgia', letterSpacing: 0.3 },
-  brandNameCompact: { fontSize: 14 },
-  brandSub: { color: palette.mutedForeground, fontSize: 10, marginTop: 2, letterSpacing: 0.4 },
+  brandLogo: { width: 48, height: 48 },
+  brandLogoCompact: { width: 48, height: 48 },
+  brandName: { color: palette.plum, fontSize: 18, fontWeight: '700', fontFamily: 'Georgia', letterSpacing: 0.3 },
+  brandNameCompact: { fontSize: 18 },
+  brandSub: { color: palette.mutedForeground, fontSize: 11, marginTop: 3, letterSpacing: 0.5 },
   sectionHeader: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 28, marginBottom: 12 },
   eyebrow: { color: palette.rose, fontSize: 10, letterSpacing: 1.7, fontWeight: '700', marginBottom: 5 },
   sectionTitle: { color: palette.plum, fontSize: 23, fontWeight: '700', fontFamily: 'Georgia', letterSpacing: -0.4 },
