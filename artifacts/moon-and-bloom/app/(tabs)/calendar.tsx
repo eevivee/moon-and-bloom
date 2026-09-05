@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useMoon, addDays, formatDate, parseISO, todayISO, Flow, DailyLog } from '@/context/MoonContext';
-import { BrandMark, Card, IconButton, palette, Pill, PrimaryButton, Screen, SectionTitle } from '@/components/MoonUI';
+import { BrandBanner, BrandMark, Card, IconButton, palette, Pill, PrimaryButton, Screen, SectionTitle } from '@/components/MoonUI';
 import { YearAtAGlance } from '@/components/YearAtAGlance';
 
 const week = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -32,8 +32,8 @@ export default function CalendarScreen() {
   const predicted = new Set(Array.from({ length: data.periodLength }, (_, i) => addDays(addDays(data.lastPeriodStart, data.typicalCycleLength), i)));
   const isPeriodDay = (date: string) => data.periodDays.includes(date) || ['Light', 'Medium', 'Heavy'].includes(data.logs[date]?.flow ?? '');
 
-  return <Screen><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-    <View style={styles.header}><BrandMark compact /></View>
+  return <Screen><ScrollView style={{ marginHorizontal: -20 }} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+     <BrandBanner><View style={styles.header}><BrandMark /></View></BrandBanner>
     <SectionTitle eyebrow="Your rhythm" title="Cycle Calendar" trailing={<View style={styles.headerActions}><IconButton icon="chevron-back" label="Previous month" onPress={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} /><IconButton icon="chevron-forward" label="Next month" onPress={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} /></View>} />
     <Text style={styles.calendarInstruction}>Mark bleeding, spotting, and add a simple note</Text>
     <Card style={styles.calendarCard}>
@@ -61,7 +61,7 @@ export default function CalendarScreen() {
 function LegendDot({ color, label, outline }: { color: string; label: string; outline?: boolean }) { return <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: outline ? 'transparent' : color, borderColor: color, borderWidth: outline ? 1.5 : 0 }]} /><Text>{label}</Text></View>; }
 
 const styles = StyleSheet.create({
-  scroll: { paddingBottom: 10 },
+  scroll: { paddingHorizontal: 20, paddingBottom: 10 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   headerActions: { flexDirection: 'row', gap: 7 },
   calendarInstruction: { color: palette.mutedForeground, fontSize: 13, lineHeight: 19, marginTop: -5, marginBottom: 15 },
