@@ -9,7 +9,7 @@ const week = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const monthLabel = (date: Date) => date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
 export default function CalendarScreen() {
-  const { data, togglePeriodDay, saveLog } = useMoon();
+  const { data, currentPeriodStart, averageCycle, averagePeriod, togglePeriodDay, saveLog } = useMoon();
   const [cursor, setCursor] = useState(new Date());
   const [selected, setSelected] = useState<string | null>(null);
   const [flow, setFlow] = useState<Flow>(data.logs[todayISO()]?.flow ?? 'None');
@@ -29,7 +29,7 @@ export default function CalendarScreen() {
     saveLog({ ...existing, date: selected, flow, note: note.trim() || undefined });
     setSelected(null);
   };
-  const predicted = new Set(Array.from({ length: data.periodLength }, (_, i) => addDays(addDays(data.lastPeriodStart, data.typicalCycleLength), i)));
+  const predicted = new Set(Array.from({ length: averagePeriod }, (_, i) => addDays(addDays(currentPeriodStart, averageCycle), i)));
   const isPeriodDay = (date: string) => data.periodDays.includes(date) || ['Light', 'Medium', 'Heavy'].includes(data.logs[date]?.flow ?? '');
 
   return <Screen><ScrollView style={{ marginHorizontal: -20 }} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
@@ -45,7 +45,7 @@ export default function CalendarScreen() {
       </Pressable> : <View key={`blank-${index}`} style={styles.day} />)}</View>
       <View style={styles.legend}><LegendDot color={palette.rose} label="Period" /><LegendDot color={palette.blush} label="Expected" /><LegendDot color={palette.plum} outline label="Today" /></View>
     </Card>
-    <View style={styles.yearSection}><YearAtAGlance periodDays={data.periodDays} logs={data.logs} lastPeriodStart={data.lastPeriodStart} typicalCycleLength={data.typicalCycleLength} periodLength={data.periodLength} /></View>
+     <View style={styles.yearSection}><YearAtAGlance periodDays={data.periodDays} logs={data.logs} lastPeriodStart={currentPeriodStart} typicalCycleLength={averageCycle} periodLength={averagePeriod} /></View>
     <AppFooter />
   </ScrollView>
   <Modal visible={!!selected} transparent animationType="slide" onRequestClose={() => setSelected(null)}>

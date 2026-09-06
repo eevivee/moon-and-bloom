@@ -144,6 +144,24 @@ export const getPhase = (cycleDay: number, cycleLength: number, periodLength: nu
   return 'Luteal';
 };
 
+const isBleedingFlow = (flow: Flow) => flow !== 'None' && flow !== 'Spotting';
+
+const getTrackedPeriodDays = (data: MoonData) =>
+  Array.from(new Set([
+    ...data.periodDays,
+    ...Object.values(data.logs).filter((log) => isBleedingFlow(log.flow)).map((log) => log.date),
+  ])).sort();
+
+const getPeriodEpisodes = (periodDays: string[]) => {
+  const episodes: string[][] = [];
+  periodDays.forEach((date) => {
+    const current = episodes[episodes.length - 1];
+    if (!current || daysBetween(current[current.length - 1], date) !== 1) episodes.push([date]);
+    else current.push(date);
+  });
+  return episodes;
+};
+
 const initialData: MoonData = {
   initialized: false,
   lastPeriodStart: todayISO(),
@@ -164,7 +182,12 @@ interface MoonContextValue {
   nextPeriod: string;
   daysUntilNext: number;
   averageCycle: number;
+  hasCycleHistory: boolean;
+  cycleRange: string;
+  cycleRangeStart: number;
+  cycleRangeEnd: number;
   averagePeriod: number;
+  currentPeriodStart: string;
   initialize: (start: string, periodLength: number, cycleLength: number) => void;
   togglePeriodDay: (date: string, flow?: Flow) => void;
   saveLog: (log: DailyLog) => void;
@@ -228,20 +251,35 @@ export function MoonProvider({ children }: { children: ReactNode }) {
   const replaceData = (next: MoonData) => commit({ ...initialData, ...next, remedies: mergeStarterRemedies(next.remedies), initialized: true });
   const clearAll = () => { void AsyncStorage.removeItem(STORAGE_KEY); setData(initialData); };
 
-  const lastPeriod = data.lastPeriodStart;
-  const cycleDay = getCycleDay(lastPeriod);
-  const nextPeriod = addDays(lastPeriod, data.typicalCycleLength);
-  const daysUntilNext = daysBetween(todayISO(), nextPeriod);
-  const periodStarts = data.periodDays.filter((day) => !data.periodDays.includes(addDays(day, -1))).sort();
-  const cycleLengths = periodStarts.slice(-6).slice(0, -1).map((start, index) => daysBetween(start, periodStarts.slice(-6)[index + 1]));
-  const averageCycle = cycleLengths.length ? Math.round(cycleLengths.reduce((sum, value) => sum + value, 0) / cycleLengths.length) : data.typicalCycleLength;
-  const averagePeriod = data.periodLength;
+  const today = todayISO();
+  const periodEpisodes = getPeriodEpisodes(getTrackedPeriodDays(data));
+  const periodStarts = periodEpisodes.map((episode) => episode[0]).filter((start) => start <= today);
+  const currentPeriodStart = periodStarts[periodStarts.length - 1] ?? data.lastPeriodStart;
+  const cycleLengths = periodStarts.slice(1).map((start, index) => daysBetween(periodStarts[index], start));
+  const hasCycleHistory = cycleLengths.length > 0;
+  const averageCycle = cycleLengths.length
+    ? Math.round(cycleLengths.reduce((sum, value) => sum + value, 0) / cycleLengths.length)
+    : data.typicalCycleLength;
+  const cycleRangeStart = cycleLengths.length ? Math.min(...cycleLengths) : data.typicalCycleLength;
+  const cycleRangeEnd = cycleLengths.length ? Math.max(...cycleLengths) : data.typicalCycleLength;
+  const cycleRange = cycleLengths.length
+    ? `${cycleRangeStart}–${cycleRangeEnd} days`
+    : `${data.typicalCycleLength} days`;
+  const completedPeriodLengths = periodEpisodes
+    .filter((episode) => episode[episode.length - 1] < today)
+    .map((episode) => episode.length);
+  const averagePeriod = completedPeriodLengths.length
+    ? Math.round(completedPeriodLengths.reduce((sum, value) => sum + value, 0) / completedPeriodLengths.length)
+    : data.periodLength;
+  const cycleDay = getCycleDay(currentPeriodStart);
+  const nextPeriod = addDays(currentPeriodStart, averageCycle);
+  const daysUntilNext = daysBetween(today, nextPeriod);
 
   const value = useMemo<MoonContextValue>(() => ({
     data, hydrated, cycleDay, phase: getPhase(cycleDay, averageCycle, averagePeriod), nextPeriod, daysUntilNext,
-    averageCycle, averagePeriod, initialize, togglePeriodDay, saveLog, addRemedy, toggleFavorite, updateRemedyHelpfulness, replaceData, clearAll,
+    averageCycle, hasCycleHistory, cycleRange, cycleRangeStart, cycleRangeEnd, averagePeriod, currentPeriodStart, initialize, togglePeriodDay, saveLog, addRemedy, toggleFavorite, updateRemedyHelpfulness, replaceData, clearAll,
     exportJSON: () => JSON.stringify(data, null, 2),
-  }), [data, hydrated, cycleDay, averageCycle, averagePeriod, nextPeriod, daysUntilNext]);
+  }), [data, hydrated, cycleDay, averageCycle, hasCycleHistory, cycleRange, cycleRangeStart, cycleRangeEnd, averagePeriod, currentPeriodStart, nextPeriod, daysUntilNext]);
 
   return <MoonContext.Provider value={value}>{children}</MoonContext.Provider>;
 }

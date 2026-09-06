@@ -11,6 +11,13 @@ const phaseDefinitions: Record<string, string> = {
   Luteal: 'The phase after estimated ovulation and before your next period. It can be a useful time to slow down, notice what you need, and prepare for rest.',
 };
 
+const phaseColors: Record<string, string> = {
+  Menstrual: palette.cream,
+  Follicular: palette.blush,
+  Ovulatory: palette.rose,
+  Luteal: palette.primary,
+};
+
 const stableHash = (value: string) => {
   let hash = 0;
   for (let index = 0; index < value.length; index += 1) hash = (hash * 31 + value.charCodeAt(index)) % 2147483647;
@@ -22,11 +29,25 @@ const dayOrdinal = (value: string) => {
   return Math.floor(Date.UTC(year, month - 1, day) / 86400000);
 };
 
+const getPhaseTimeline = (cycleLength: number, periodLength: number) => {
+  const ovulationDay = Math.max(periodLength + 4, cycleLength - 14);
+  return [
+    { name: 'Menstrual', length: Math.max(1, periodLength) },
+    { name: 'Follicular', length: Math.max(1, ovulationDay - periodLength - 3) },
+    { name: 'Ovulatory', length: 4 },
+    { name: 'Luteal', length: Math.max(1, cycleLength - ovulationDay - 1) },
+  ];
+};
+
 export default function TodayScreen() {
-  const { data, cycleDay, phase, nextPeriod, averageCycle, averagePeriod } = useMoon();
+  const { data, cycleDay, phase, nextPeriod, averageCycle, cycleRange, averagePeriod, currentPeriodStart } = useMoon();
   const [showPhaseInfo, setShowPhaseInfo] = useState(false);
   const greeting = 'Welcome back';
   const today = todayISO();
+  const phaseTimeline = getPhaseTimeline(averageCycle, averagePeriod);
+  const timelineCycleDay = Math.min(Math.max(cycleDay, 1), averageCycle);
+  const phaseMarkerPosition = ((timelineCycleDay - 0.5) / averageCycle) * 100;
+  const daysBeyondAverage = Math.max(0, cycleDay - averageCycle);
   const phaseCopy: Record<string, string> = {
     Menstrual: 'A softer pace may serve you today.',
     Follicular: 'There is a little more lift in the air.',
@@ -50,13 +71,14 @@ export default function TodayScreen() {
     <Card style={styles.hero}>
       <View style={styles.heroTop}><View><Text style={styles.heroEyebrow}>TODAY · CYCLE DAY {cycleDay}</Text><Pressable onPress={() => setShowPhaseInfo(true)} style={styles.phaseButton} testID="current-phase-info"><Text style={styles.heroPhase}>{phase} Phase</Text><Ionicons name="information-circle-outline" size={17} color={palette.blush} /></Pressable></View><View style={styles.moonBadge}><Ionicons name="moon" size={25} color={palette.cream} /></View></View>
       <Text style={styles.heroCopy}>{phaseCopy[phase]}</Text>
-      <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${Math.min(100, Math.round((cycleDay / averageCycle) * 100))}%` }]} /></View>
-      <View style={styles.progressLabels}><Text style={styles.progressLabel}>Day {cycleDay}</Text><Text style={styles.progressLabel}>of ~{averageCycle}</Text></View>
+       <View style={styles.phaseTimeline}><View style={styles.phaseSegments}>{phaseTimeline.map((segment) => <View key={segment.name} style={[styles.phaseSegment, { flex: segment.length, backgroundColor: phaseColors[segment.name] }]} />)}</View><View style={[styles.phaseMarker, { left: `${phaseMarkerPosition}%` }]}><View style={styles.phaseMarkerDot} /></View></View>
+       <View style={styles.phaseLabels}>{phaseTimeline.map((segment) => <Text key={segment.name} style={[styles.phaseLabel, { flex: segment.length }, phase === segment.name && styles.phaseLabelActive]}>{segment.name}</Text>)}</View>
+       {daysBeyondAverage > 0 && <Text style={styles.progressNote}>This cycle is {daysBeyondAverage} {daysBeyondAverage === 1 ? 'day' : 'days'} beyond your average.</Text>}
     </Card>
 
     <SectionTitle eyebrow="A little context" title="Your Numbers" />
-    <View style={styles.metricGrid}><Metric compact label="Average cycle" value={`${averageCycle} days`} /><Metric compact label="Average period" value={`${averagePeriod} days`} tone={palette.rose} /><Metric compact label="Since last period" value={`${Math.max(0, cycleDay - 1)} days`} tone={palette.plum} /></View>
-    <View style={[styles.metricGrid, { marginTop: 0 }]}><Metric compact label="Current phase" value={phase} tone={palette.accentForeground} /><Metric compact label="Next expected period" value={formatDate(nextPeriod, { month: 'short', day: 'numeric' })} tone={palette.primary} /><View style={styles.metricSpacer} /></View>
+    <View style={styles.metricGrid}><Metric compact label="Average cycle" value={`${averageCycle} days`} /><Metric compact label="Average period" value={`${averagePeriod} days`} tone={palette.rose} /><Metric compact label="Cycle Range" value={cycleRange} tone={palette.plum} /></View>
+    <View style={[styles.metricGrid, { marginTop: 0 }]}><Metric compact label="Current phase" value={phase} tone={palette.accentForeground} /><Metric compact label="Next expected period" value={formatDate(nextPeriod, { month: 'short', day: 'numeric' })} tone={palette.primary} /><Metric compact label="Last Menstrual Period" value={formatDate(currentPeriodStart, { month: 'short', day: 'numeric' })} tone={palette.plum} /></View>
 
     <SectionTitle eyebrow="For this phase" title="Nourish & Restore" />
     <Card style={styles.suggestion} accent={palette.sage}>
@@ -94,10 +116,17 @@ const styles = StyleSheet.create({
   heroPhase: { color: palette.cream, fontSize: 24, fontWeight: '700', fontFamily: 'Georgia', marginTop: 5 },
   moonBadge: { width: 50, height: 50, borderRadius: 25, backgroundColor: 'rgba(255,250,244,0.16)', alignItems: 'center', justifyContent: 'center' },
   heroCopy: { color: palette.cream, fontSize: 14, lineHeight: 21, marginTop: 20, maxWidth: 280 },
-  progressTrack: { height: 7, borderRadius: 4, backgroundColor: 'rgba(255,250,244,0.18)', marginTop: 20, overflow: 'hidden' },
-  progressFill: { height: 7, borderRadius: 4, backgroundColor: palette.blush },
+  phaseTimeline: { height: 16, marginTop: 20, position: 'relative', justifyContent: 'center' },
+  phaseSegments: { height: 8, borderRadius: 4, overflow: 'hidden', flexDirection: 'row' },
+  phaseSegment: { height: 8 },
+  phaseMarker: { position: 'absolute', top: 0, width: 16, height: 16, marginLeft: -8, borderRadius: 8, backgroundColor: 'transparent', borderWidth: 1, borderColor: palette.cream, alignItems: 'center', justifyContent: 'center' },
+  phaseMarkerDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: palette.cream },
+  phaseLabels: { flexDirection: 'row', marginTop: 6 },
+  phaseLabel: { color: palette.cream, fontSize: 9, lineHeight: 12, textAlign: 'center' },
+  phaseLabelActive: { fontWeight: '700' },
   progressLabels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 7 },
   progressLabel: { color: palette.cream, fontSize: 11, fontWeight: '600' },
+  progressNote: { color: palette.blush, fontSize: 11, lineHeight: 16, marginTop: 8 },
   metricGrid: { flexDirection: 'row', gap: 8 },
   metricSpacer: { flex: 1 },
   suggestion: { flexDirection: 'row', gap: 13, alignItems: 'flex-start' },
