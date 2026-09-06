@@ -13,7 +13,7 @@ export function BrandMark({ compact = false }: { compact?: boolean }) {
       <Image source={require('../assets/images/logo.png')} style={[styles.brandLogo, compact && styles.brandLogoCompact]} resizeMode="contain" />
       <View>
         <Text style={[styles.brandName, compact && styles.brandNameCompact]}>Moon & Bloom</Text>
-        {!compact && <Text style={styles.brandSub}>my wellness my way</Text>}
+        {!compact && <Text style={styles.brandSub}>My Wellness My Way</Text>}
       </View>
     </View>
   );
@@ -23,6 +23,10 @@ export function BrandBanner({ children }: { children: ReactNode }) {
   const insets = useSafeAreaInsets();
   const topPadding = Math.max(insets.top, 32) + 20;
   return <View style={[styles.brandBanner, { paddingTop: topPadding }]}>{children}</View>;
+}
+
+export function AppFooter() {
+  return <Text style={styles.appFooter}>Moon & Bloom © Eevi Jones LLC</Text>;
 }
 
 export function Screen({ children, scroll = true }: { children: ReactNode; scroll?: boolean }) {
@@ -73,11 +77,12 @@ export const styles = StyleSheet.create({
   screenInner: { flex: 1, paddingHorizontal: 20, paddingBottom: 118 },
   brandBanner: { marginHorizontal: -20, paddingHorizontal: 20, paddingBottom: 22, backgroundColor: palette.blush, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  brandLogo: { width: 48, height: 48 },
-  brandLogoCompact: { width: 48, height: 48 },
-  brandName: { color: palette.plum, fontSize: 18, fontWeight: '700', fontFamily: 'Georgia', letterSpacing: 0.3 },
-  brandNameCompact: { fontSize: 18 },
-  brandSub: { color: palette.mutedForeground, fontSize: 11, marginTop: 3, letterSpacing: 0.5 },
+  brandLogo: { width: 52, height: 52 },
+  brandLogoCompact: { width: 52, height: 52 },
+  brandName: { color: palette.plum, fontSize: 20, fontWeight: '700', fontFamily: 'Georgia', letterSpacing: 0.3 },
+  brandNameCompact: { fontSize: 20 },
+  brandSub: { color: palette.mutedForeground, fontSize: 12, marginTop: 3, letterSpacing: 0.55 },
+  appFooter: { color: palette.mutedForeground, fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: 28, marginBottom: 8 },
   sectionHeader: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 28, marginBottom: 12 },
   eyebrow: { color: palette.rose, fontSize: 10, letterSpacing: 1.7, fontWeight: '700', marginBottom: 5 },
   sectionTitle: { color: palette.plum, fontSize: 23, fontWeight: '700', fontFamily: 'Georgia', letterSpacing: -0.4 },

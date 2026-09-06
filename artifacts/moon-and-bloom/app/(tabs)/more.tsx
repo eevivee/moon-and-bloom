@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Share } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { daysBetween, formatDate, useMoon } from '@/context/MoonContext';
-import { BrandBanner, BrandMark, Card, Metric, palette, PrimaryButton, Screen, SectionTitle } from '@/components/MoonUI';
+import * as DocumentPicker from 'expo-document-picker';
+import { File as ExpoFile, Paths } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import { daysBetween, formatDate, todayISO, useMoon } from '@/context/MoonContext';
+import { AppFooter, BrandBanner, BrandMark, Card, Metric, palette, PrimaryButton, Screen, SectionTitle } from '@/components/MoonUI';
 import { YearAtAGlance } from '@/components/YearAtAGlance';
 import {
   connectGitHubBackup,
@@ -23,7 +25,9 @@ type Panel = 'journal' | 'history' | 'insights' | 'github' | null;
 export default function MoreScreen() {
   const { data, cycleDay, phase, averageCycle, averagePeriod, exportJSON, replaceData, clearAll } = useMoon();
   const [showImport, setShowImport] = useState(false);
-  const [importText, setImportText] = useState('');
+  const [importFileContents, setImportFileContents] = useState('');
+  const [importFileName, setImportFileName] = useState('');
+  const [importBusy, setImportBusy] = useState(false);
   const [activePanel, setActivePanel] = useState<Panel>(null);
   const [githubSession, setGitHubSession] = useState<GitHubBackupSession | null>(null);
   const [githubSync, setGitHubSync] = useState('GitHub backup is locked');
@@ -40,8 +44,52 @@ export default function MoreScreen() {
     }, 800);
     return () => clearTimeout(timeout);
   }, [data, githubSession]);
-  const exportData = async () => { await Share.share({ title: 'Moon & Bloom data', message: exportJSON() }); };
-  const importData = () => { try { replaceData(JSON.parse(importText)); setImportText(''); setShowImport(false); Alert.alert('Data restored', 'Your private journal is back on this device.'); } catch { Alert.alert('That file could not be read', 'Paste the JSON exported from Moon & Bloom and try again.'); } };
+  const exportData = async () => {
+    const contents = exportJSON();
+    const filename = `moon-and-bloom-backup-${todayISO()}.json`;
+    try {
+      if (Platform.OS === 'web') {
+        const blob = new Blob([contents], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = filename;
+        anchor.click();
+        URL.revokeObjectURL(url);
+        return;
+      }
+
+      const file = new ExpoFile(Paths.cache, filename);
+      file.write(contents);
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(file.uri, { mimeType: 'application/json', dialogTitle: 'Save your Moon & Bloom backup', UTI: 'public.json' });
+      } else {
+        Alert.alert('Backup ready', `Your backup was created at ${file.uri}.`);
+      }
+    } catch {
+      Alert.alert('Export could not be completed', 'Please try exporting your data again.');
+    }
+  };
+  const chooseImportFile = async () => {
+    setImportBusy(true);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: ['application/json', 'text/plain'], copyToCacheDirectory: true, multiple: false, base64: false });
+      if (result.canceled) return;
+      const asset = result.assets[0];
+      const contents = Platform.OS === 'web' && asset.file
+        ? await asset.file.text()
+        : await new ExpoFile(asset.uri).text();
+      setImportFileName(asset.name);
+      setImportFileContents(contents);
+    } catch {
+      setImportFileName('');
+      setImportFileContents('');
+      Alert.alert('That file could not be read', 'Choose the JSON file exported from Moon & Bloom and try again.');
+    } finally {
+      setImportBusy(false);
+    }
+  };
+  const importData = () => { try { replaceData(JSON.parse(importFileContents)); setImportFileName(''); setImportFileContents(''); setShowImport(false); Alert.alert('Data restored', 'Your private journal is back on this device.'); } catch { Alert.alert('That file could not be read', 'Choose the JSON file exported from Moon & Bloom and try again.'); } };
   const deleteData = () => Alert.alert('Delete all local data?', 'This removes your cycle history, notes, and cabinet from this device. This cannot be undone.', [{ text: 'Keep my data', style: 'cancel' }, { text: 'Delete everything', style: 'destructive', onPress: clearAll }]);
   const journalEntries = Object.values(data.logs)
     .filter((entry) => entry.note?.trim() || entry.flow !== 'None' || entry.mood.length || entry.symptoms.length)
@@ -71,7 +119,7 @@ export default function MoreScreen() {
     <MenuRow icon="upload" label="Export my data" detail="Create a portable JSON backup" onPress={exportData} />
     <MenuRow icon="download" label="Import my data" detail="Restore a previous backup" onPress={() => setShowImport(true)} />
     <Pressable onPress={deleteData} style={styles.deleteRow}><Feather name="trash-2" size={18} color={palette.destructive} /><View><Text style={styles.deleteLabel}>Delete all data</Text><Text style={styles.deleteDetail}>Clear this device and start fresh</Text></View></Pressable>
-     <Text style={styles.version}>Moon & Bloom - A Private Wellness Journal</Text>
+     <AppFooter />
   </ScrollView>
   <Modal visible={!!activePanel} transparent animationType="slide" onRequestClose={() => setActivePanel(null)}><View style={styles.modalBackdrop}><View style={styles.sheet}><View style={styles.sheetHandle} /><View style={styles.sheetHeader}><View><Text style={styles.sheetEyebrow}>YOUR PRIVATE RECORD</Text><Text style={styles.sheetTitle}>{activePanel === 'journal' ? 'Journal' : activePanel === 'history' ? 'History' : activePanel === 'github' ? 'GitHub backup' : 'Insights'}</Text></View><Pressable onPress={() => setActivePanel(null)} hitSlop={10}><Ionicons name="close" size={24} color={palette.mutedForeground} /></Pressable></View>
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.panelContent}>
@@ -81,7 +129,7 @@ export default function MoreScreen() {
       {activePanel === 'github' && <GitHubBackupPanel data={data} replaceData={replaceData} session={githubSession} onSession={(session) => { lastBackedUpData.current = JSON.stringify(data); setGitHubSession(session); setGitHubSync('Unlocked for this session'); }} onDisconnect={() => { lastBackedUpData.current = ''; setGitHubSession(null); setGitHubSync('GitHub backup is locked'); }} />}
     </ScrollView>
   </View></View></Modal>
-  <Modal visible={showImport} transparent animationType="slide" onRequestClose={() => setShowImport(false)}><View style={styles.modalBackdrop}><View style={styles.sheet}><View style={styles.sheetHandle} /><View style={styles.sheetHeader}><Text style={styles.sheetTitle}>Import your data</Text><Pressable onPress={() => setShowImport(false)}><Ionicons name="close" size={24} color={palette.mutedForeground} /></Pressable></View><Text style={styles.sheetText}>Paste the JSON backup you exported from Moon & Bloom. It stays on this device.</Text><TextInput value={importText} onChangeText={setImportText} multiline placeholder="{ ... }" placeholderTextColor={palette.mutedForeground} style={styles.importInput} /><PrimaryButton label="Restore journal" onPress={importData} icon="download" disabled={!importText.trim()} /></View></View></Modal>
+  <Modal visible={showImport} transparent animationType="slide" onRequestClose={() => setShowImport(false)}><View style={styles.modalBackdrop}><View style={styles.sheet}><View style={styles.sheetHandle} /><View style={styles.sheetHeader}><Text style={styles.sheetTitle}>Import your data</Text><Pressable onPress={() => setShowImport(false)}><Ionicons name="close" size={24} color={palette.mutedForeground} /></Pressable></View><Text style={styles.sheetText}>Choose the JSON backup file you exported from Moon & Bloom. It stays on this device.</Text><Pressable accessibilityRole="button" accessibilityLabel="Choose JSON backup file" onPress={() => void chooseImportFile()} disabled={importBusy} style={({ pressed }) => [styles.filePicker, pressed && styles.filePickerPressed]}><View style={styles.fileIcon}><Ionicons name="document-attach-outline" size={21} color={palette.primary} /></View><View style={styles.fileCopy}><Text style={styles.fileName}>{importFileName || 'Choose backup file'}</Text><Text style={styles.fileDetail}>{importBusy ? 'Reading file…' : importFileName ? 'Ready to restore' : 'JSON files only'}</Text></View><Ionicons name="chevron-forward" size={18} color={palette.mutedForeground} /></Pressable><PrimaryButton label="Restore journal" onPress={importData} icon="download" disabled={importBusy || !importFileContents.trim()} /></View></View></Modal>
   </Screen>;
 }
 
@@ -223,7 +271,12 @@ const styles = StyleSheet.create({
   sheetEyebrow: { color: palette.rose, fontSize: 10, fontWeight: '700', letterSpacing: 1.5, marginBottom: 5 },
   sheetTitle: { color: palette.plum, fontSize: 22, fontWeight: '700' },
   sheetText: { color: palette.mutedForeground, fontSize: 13, lineHeight: 19, marginBottom: 14 },
-  importInput: { minHeight: 150, maxHeight: 250, borderRadius: 15, backgroundColor: palette.cream, borderWidth: 1, borderColor: palette.border, padding: 14, color: palette.foreground, fontSize: 12, textAlignVertical: 'top', marginBottom: 18 },
+  filePicker: { flexDirection: 'row', alignItems: 'center', gap: 11, minHeight: 68, borderRadius: 16, backgroundColor: palette.cream, borderWidth: 1, borderColor: palette.border, paddingHorizontal: 13, marginBottom: 18 },
+  filePickerPressed: { opacity: 0.75 },
+  fileIcon: { width: 38, height: 38, borderRadius: 13, backgroundColor: palette.blush, alignItems: 'center', justifyContent: 'center' },
+  fileCopy: { flex: 1 },
+  fileName: { color: palette.plum, fontSize: 14, fontWeight: '700' },
+  fileDetail: { color: palette.mutedForeground, fontSize: 12, marginTop: 3 },
   panelContent: { paddingBottom: 8 },
   panelIntro: { color: palette.mutedForeground, fontSize: 13, lineHeight: 19, marginBottom: 15 },
   backupStatus: { backgroundColor: palette.sage, borderColor: palette.sage, marginBottom: 16 },

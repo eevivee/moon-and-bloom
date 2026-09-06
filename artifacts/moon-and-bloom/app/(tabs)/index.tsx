@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { useMoon, formatDate } from '@/context/MoonContext';
-import { BrandBanner, BrandMark, Card, Metric, palette, Screen, SectionTitle } from '@/components/MoonUI';
+import { todayISO, useMoon, formatDate } from '@/context/MoonContext';
+import { AppFooter, BrandBanner, BrandMark, Card, Metric, palette, Screen, SectionTitle } from '@/components/MoonUI';
 
 const phaseDefinitions: Record<string, string> = {
   Menstrual: 'The days of your period, when the uterine lining is released. Many people naturally want more rest, warmth, and inward time here.',
@@ -11,16 +11,38 @@ const phaseDefinitions: Record<string, string> = {
   Luteal: 'The phase after estimated ovulation and before your next period. It can be a useful time to slow down, notice what you need, and prepare for rest.',
 };
 
+const stableHash = (value: string) => {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) hash = (hash * 31 + value.charCodeAt(index)) % 2147483647;
+  return hash;
+};
+
+const dayOrdinal = (value: string) => {
+  const [year, month, day] = value.split('-').map(Number);
+  return Math.floor(Date.UTC(year, month - 1, day) / 86400000);
+};
+
 export default function TodayScreen() {
-  const { cycleDay, phase, nextPeriod, averageCycle, averagePeriod } = useMoon();
+  const { data, cycleDay, phase, nextPeriod, averageCycle, averagePeriod } = useMoon();
   const [showPhaseInfo, setShowPhaseInfo] = useState(false);
   const greeting = 'Welcome back';
+  const today = todayISO();
   const phaseCopy: Record<string, string> = {
     Menstrual: 'A softer pace may serve you today.',
     Follicular: 'There is a little more lift in the air.',
     Ovulatory: 'A bright, outward-moving moment in your cycle.',
     Luteal: 'A natural invitation to slow down and listen in.',
   };
+  const remedyPoolKey = data.remedies.map((item) => `${item.id}:${item.phase}`).join('|');
+  const phaseRemedy = useMemo(() => {
+    const phaseMatches = data.remedies.filter((item) => item.phase === phase);
+    const candidates = phaseMatches.length
+      ? phaseMatches
+      : data.remedies.filter((item) => item.phase === 'Any phase');
+    if (!candidates.length) return undefined;
+    const dailyOrder = [...candidates].sort((a, b) => stableHash(`${phase}:${a.id}`) - stableHash(`${phase}:${b.id}`));
+    return dailyOrder[dayOrdinal(today) % dailyOrder.length];
+  }, [phase, remedyPoolKey, today]);
   return <Screen><ScrollView style={{ marginHorizontal: -20 }} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
      <BrandBanner><View style={styles.top}><BrandMark /></View></BrandBanner>
     <Text style={styles.greeting}>{greeting}</Text>
@@ -39,9 +61,10 @@ export default function TodayScreen() {
     <SectionTitle eyebrow="For this phase" title="Nourish & Restore" />
     <Card style={styles.suggestion} accent={palette.sage}>
       <View style={styles.suggestionIcon}><Feather name={phase === 'Menstrual' ? 'coffee' : phase === 'Luteal' ? 'moon' : 'sun'} size={20} color={palette.accentForeground} /></View>
-      <View style={styles.suggestionBody}><Text style={styles.suggestionTitle}>{phase === 'Menstrual' ? 'Warmth & rest' : phase === 'Luteal' ? 'Make room to exhale' : 'Follow your energy'}</Text><Text style={styles.suggestionCopy}>{phase === 'Menstrual' ? 'Try ginger or chamomile tea, a warm compress, and an earlier night if you can.' : phase === 'Luteal' ? 'A slower walk, magnesium-rich foods, and a nourishing evening ritual could feel good.' : 'A fresh meal, light movement, and one small thing that feels creatively alive.'}</Text></View>
+      <View style={styles.suggestionBody}><Text style={styles.suggestionTitle}>{phaseRemedy ? `Try ${phaseRemedy.name}` : phaseCopy[phase]}</Text><Text style={styles.suggestionCopy}>{phaseRemedy ? `For cycle day ${cycleDay} in your ${phase.toLowerCase()} phase, ${phaseRemedy.description}` : `${phaseCopy[phase]} Check the Remedies tab for an idea that fits this part of your cycle.`}</Text></View>
     </Card>
     <View style={styles.disclaimer}><Ionicons name="information-circle-outline" size={15} color={palette.mutedForeground} /><Text style={styles.disclaimerText}>These are personal-wellness ideas, not medical advice.</Text></View>
+    <AppFooter />
   </ScrollView>
   <Modal visible={showPhaseInfo} transparent animationType="slide" onRequestClose={() => setShowPhaseInfo(false)}>
     <View style={styles.modalBackdrop}><View style={styles.sheet}>

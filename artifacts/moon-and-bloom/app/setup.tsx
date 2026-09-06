@@ -3,7 +3,7 @@ import { Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, St
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useMoon } from '@/context/MoonContext';
-import { Field, palette, PrimaryButton } from '@/components/MoonUI';
+import { AppFooter, Field, palette, PrimaryButton } from '@/components/MoonUI';
 
 const weekdays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -49,11 +49,11 @@ export default function SetupScreen() {
   return <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
     <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Image source={require('../assets/images/logo.png')} style={styles.logo} resizeMode="contain" />
-      <Text style={styles.kicker}>my wellness my way</Text>
+       <Text style={styles.kicker}>My Wellness My Way</Text>
       <Text style={styles.title}>Welcome to{'\n'}Moon & Bloom</Text>
-      <Text style={styles.intro}>Understand your cycle, notice your patterns, and support yourself throughout the month. Everything stays on this device.</Text>
+       <Text style={styles.intro}>Your Cycle Stays Yours.{'\n\n'}Moon & Bloom was created with privacy at its heart. Your cycle and wellness data is stored locally on this device — no account, no cloud storage, and no personal data sent elsewhere.{'\n\n'}That also means your data won’t automatically follow you to a new device. Before switching devices, simply export your data and import it into Moon & Bloom on your new one. It’s also a good idea to export an occasional backup for safekeeping.</Text>
       <View style={styles.form}>
-        <Text style={styles.formTitle}>begin here</Text>
+         <Text style={styles.formTitle}>Begin Here</Text>
         <View style={styles.field}>
           <Text style={styles.fieldLabel}>First day of your most recent period</Text>
           <Pressable testID="period-start-picker" onPress={openPicker} style={styles.dateInput}>
@@ -67,6 +67,7 @@ export default function SetupScreen() {
         <PrimaryButton label="Open my journal" onPress={begin} icon="arrow-forward" />
       </View>
       <Text style={styles.privacy}>No account. No cloud storage.</Text>
+       <AppFooter />
     </ScrollView>
     <Modal visible={pickerOpen} transparent animationType="slide" onRequestClose={() => setPickerOpen(false)}>
       <View style={styles.modalBackdrop}>

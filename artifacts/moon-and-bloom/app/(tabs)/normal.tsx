@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useMoon } from '@/context/MoonContext';
-import { BrandBanner, BrandMark, Card, Metric, palette, Screen, SectionTitle } from '@/components/MoonUI';
+import { AppFooter, BrandBanner, BrandMark, Card, Metric, palette, Screen, SectionTitle } from '@/components/MoonUI';
 
 const phaseDefinitions: Record<string, string> = {
   Menstrual: 'The days of your period, when the uterine lining is released. Many people naturally want more rest, warmth, and inward time here.',
@@ -32,6 +32,7 @@ export default function NormalScreen() {
     <SectionTitle eyebrow="The four phases" title="Where you are now" />
     <Card style={styles.phaseCard}>{['Menstrual', 'Follicular', 'Ovulatory', 'Luteal'].map((item) => <Pressable key={item} onPress={() => setShowPhaseInfo(true)} style={styles.phaseRow} testID={`phase-${item.toLowerCase()}`}><View style={[styles.phaseDot, item === phase && styles.phaseDotActive]} /><Text style={[styles.phaseText, item === phase && styles.phaseTextActive]}>{item}</Text>{item === phase && <Text style={styles.now}>NOW</Text>}</Pressable>)}</Card>
     <View style={styles.note}><Ionicons name="information-circle-outline" size={15} color={palette.mutedForeground} /><Text>Patterns only appear when your own entries support them.</Text></View>
+    <AppFooter />
   </ScrollView>
   <Modal visible={showPhaseInfo} transparent animationType="slide" onRequestClose={() => setShowPhaseInfo(false)}>
     <View style={styles.modalBackdrop}><View style={styles.sheet}>

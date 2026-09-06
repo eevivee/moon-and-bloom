@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useMoon, addDays, formatDate, parseISO, todayISO, Flow, DailyLog } from '@/context/MoonContext';
-import { BrandBanner, BrandMark, Card, IconButton, palette, Pill, PrimaryButton, Screen, SectionTitle } from '@/components/MoonUI';
+import { AppFooter, BrandBanner, BrandMark, Card, IconButton, palette, Pill, PrimaryButton, Screen, SectionTitle } from '@/components/MoonUI';
 import { YearAtAGlance } from '@/components/YearAtAGlance';
 
 const week = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -46,6 +46,7 @@ export default function CalendarScreen() {
       <View style={styles.legend}><LegendDot color={palette.rose} label="Period" /><LegendDot color={palette.blush} label="Expected" /><LegendDot color={palette.plum} outline label="Today" /></View>
     </Card>
     <View style={styles.yearSection}><YearAtAGlance periodDays={data.periodDays} logs={data.logs} lastPeriodStart={data.lastPeriodStart} typicalCycleLength={data.typicalCycleLength} periodLength={data.periodLength} /></View>
+    <AppFooter />
   </ScrollView>
   <Modal visible={!!selected} transparent animationType="slide" onRequestClose={() => setSelected(null)}>
     <View style={styles.modalBackdrop}><View style={styles.sheet}>
