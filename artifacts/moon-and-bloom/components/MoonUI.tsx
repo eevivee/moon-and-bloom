@@ -57,8 +57,8 @@ export function PrimaryButton({ label, onPress, icon, secondary = false, disable
   </Pressable>;
 }
 
-export function Metric({ label, value, tone = palette.plum, compact = false }: { label: string; value: string; tone?: string; compact?: boolean }) {
-  return <View style={[styles.metric, compact && styles.metricCompact]}><Text style={[styles.metricValue, compact && styles.metricValueCompact, { color: tone }]}>{value}</Text><Text style={[styles.metricLabel, compact && styles.metricLabelCompact]}>{label}</Text></View>;
+export function Metric({ label, value, tone = palette.plum, compact = false, singleLine = false }: { label: string; value: string; tone?: string; compact?: boolean; singleLine?: boolean }) {
+  return <View style={[styles.metric, compact && styles.metricCompact]}><Text numberOfLines={singleLine ? 1 : undefined} adjustsFontSizeToFit={singleLine} minimumFontScale={singleLine ? 0.8 : undefined} style={[styles.metricValue, compact && styles.metricValueCompact, { color: tone }]}>{value}</Text><Text numberOfLines={singleLine ? 1 : undefined} adjustsFontSizeToFit={singleLine} minimumFontScale={singleLine ? 0.8 : undefined} style={[styles.metricLabel, compact && styles.metricLabelCompact]}>{label}</Text></View>;
 }
 
 export function Field({ label, value, onChangeText, placeholder, keyboardType = 'default' }: { label: string; value: string; onChangeText: (value: string) => void; placeholder?: string; keyboardType?: 'default' | 'numeric' }) {

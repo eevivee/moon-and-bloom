@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { todayISO, useMoon, formatDate } from '@/context/MoonContext';
 import { AppFooter, BrandBanner, BrandMark, Card, Metric, palette, Screen, SectionTitle } from '@/components/MoonUI';
+
+const donationUrl = 'https://elkqr.link/moonandbloom';
 
 const phaseDefinitions: Record<string, string> = {
   Menstrual: 'The days of your period, when the uterine lining is released. Many people naturally want more rest, warmth, and inward time here.',
@@ -77,8 +79,8 @@ export default function TodayScreen() {
     </Card>
 
     <SectionTitle eyebrow="A little context" title="Your Numbers" />
-    <View style={styles.metricGrid}><Metric compact label="Average cycle" value={`${averageCycle} days`} /><Metric compact label="Average period" value={`${averagePeriod} days`} tone={palette.rose} /><Metric compact label="Cycle Range" value={cycleRange} tone={palette.plum} /></View>
-    <View style={[styles.metricGrid, { marginTop: 0 }]}><Metric compact label="Current phase" value={phase} tone={palette.accentForeground} /><Metric compact label="Next expected period" value={formatDate(nextPeriod, { month: 'short', day: 'numeric' })} tone={palette.primary} /><Metric compact label="Last Menstrual Period" value={formatDate(currentPeriodStart, { month: 'short', day: 'numeric' })} tone={palette.plum} /></View>
+    <View style={styles.metricGrid}><Metric compact label="Average Cycle" value={`${averageCycle} days`} /><Metric compact label="Average Period" value={`${averagePeriod} days`} tone={palette.rose} /><Metric compact label="Cycle Range" value={cycleRange} tone={palette.plum} /></View>
+    <View style={[styles.metricGrid, { marginTop: 0 }]}><Metric compact label="Current Phase" value={phase} tone={palette.accentForeground} singleLine /><Metric compact label="Next Expected Period" value={formatDate(nextPeriod, { month: 'short', day: 'numeric' })} tone={palette.primary} /><Metric compact label="Last Menstrual Period" value={formatDate(currentPeriodStart, { month: 'short', day: 'numeric' })} tone={palette.plum} /></View>
 
     <SectionTitle eyebrow="For this phase" title="Nourish & Restore" />
     <Card style={styles.suggestion} accent={palette.sage}>
@@ -86,6 +88,21 @@ export default function TodayScreen() {
       <View style={styles.suggestionBody}><Text style={styles.suggestionTitle}>{phaseRemedy ? `Try ${phaseRemedy.name}` : phaseCopy[phase]}</Text><Text style={styles.suggestionCopy}>{phaseRemedy ? `For cycle day ${cycleDay} in your ${phase.toLowerCase()} phase, ${phaseRemedy.description}` : `${phaseCopy[phase]} Check the Remedies tab for an idea that fits this part of your cycle.`}</Text></View>
     </Card>
     <View style={styles.disclaimer}><Ionicons name="information-circle-outline" size={15} color={palette.mutedForeground} /><Text style={styles.disclaimerText}>These are personal-wellness ideas, not medical advice.</Text></View>
+     <Pressable
+       accessibilityRole="button"
+       accessibilityLabel="Give for a good cause"
+       testID="donation-button"
+       onPress={() => void Linking.openURL(donationUrl)}
+       style={({ pressed }) => [styles.donationButton, pressed && styles.donationButtonPressed]}
+     >
+       <View style={styles.donationIcon}><Ionicons name="heart-outline" size={21} color={palette.cream} /></View>
+       <View style={styles.donationCopy}>
+         <Text style={styles.donationEyebrow}>A LITTLE KINDNESS</Text>
+         <Text style={styles.donationLabel}>Give for a good cause</Text>
+         <Text style={styles.donationHint}>Tap to learn more and contribute.</Text>
+       </View>
+       <Ionicons name="arrow-forward" size={19} color={palette.cream} />
+     </Pressable>
     <AppFooter />
   </ScrollView>
   <Modal visible={showPhaseInfo} transparent animationType="slide" onRequestClose={() => setShowPhaseInfo(false)}>
@@ -136,6 +153,13 @@ const styles = StyleSheet.create({
   suggestionCopy: { color: palette.mutedForeground, lineHeight: 20, fontSize: 13 },
   disclaimer: { flexDirection: 'row', gap: 6, alignItems: 'flex-start', marginTop: 17, paddingHorizontal: 4 },
   disclaimerText: { color: palette.mutedForeground, fontSize: 11, lineHeight: 16, flex: 1 },
+  donationButton: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 24, padding: 16, borderRadius: 22, backgroundColor: palette.primary, shadowColor: palette.primary, shadowOpacity: 0.2, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 3 },
+  donationButtonPressed: { opacity: 0.82, transform: [{ scale: 0.985 }] },
+  donationIcon: { width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,250,244,0.16)', alignItems: 'center', justifyContent: 'center' },
+  donationCopy: { flex: 1 },
+  donationEyebrow: { color: palette.blush, fontSize: 9, letterSpacing: 1.4, fontWeight: '700', marginBottom: 3 },
+  donationLabel: { color: palette.cream, fontSize: 18, fontWeight: '700', fontFamily: 'Georgia' },
+  donationHint: { color: palette.blush, fontSize: 11, lineHeight: 16, marginTop: 3 },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(45, 25, 37, 0.35)', justifyContent: 'flex-end' },
   sheet: { backgroundColor: palette.background, borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 22, paddingBottom: 28, maxHeight: '82%' },
   sheetHandle: { width: 38, height: 4, borderRadius: 2, backgroundColor: palette.border, alignSelf: 'center', marginBottom: 20 },

@@ -262,9 +262,9 @@ export function MoonProvider({ children }: { children: ReactNode }) {
     : data.typicalCycleLength;
   const cycleRangeStart = cycleLengths.length ? Math.min(...cycleLengths) : data.typicalCycleLength;
   const cycleRangeEnd = cycleLengths.length ? Math.max(...cycleLengths) : data.typicalCycleLength;
-  const cycleRange = cycleLengths.length
-    ? `${cycleRangeStart}–${cycleRangeEnd} days`
-    : `${data.typicalCycleLength} days`;
+  const cycleRange = cycleRangeStart === cycleRangeEnd
+    ? `${cycleRangeStart} days`
+    : `${cycleRangeStart}–${cycleRangeEnd} days`;
   const completedPeriodLengths = periodEpisodes
     .filter((episode) => episode[episode.length - 1] < today)
     .map((episode) => episode.length);
