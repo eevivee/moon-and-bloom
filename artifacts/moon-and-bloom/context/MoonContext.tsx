@@ -5,6 +5,23 @@ export type Flow = 'None' | 'Spotting' | 'Light' | 'Medium' | 'Heavy';
 export type Mood = 'Low' | 'Irritable' | 'Sensitive' | 'Anxious' | 'Calm' | 'Happy' | 'Energetic' | 'Emotional' | 'Focused';
 export type RemedyCategory = 'Teas' | 'Herbs' | 'Homeopathy' | 'Foods' | 'Supplements' | 'Movement' | 'Comfort' | 'Self-care' | 'My rituals';
 
+export const symptomOptions = [
+  'Acne',
+  'Back pain',
+  'Bloating',
+  'Breast tenderness',
+  'Cramps',
+  'Cravings',
+  'Digestive changes',
+  'Dizziness',
+  'Fatigue',
+  'Headache',
+  'Hot flashes',
+  'Mood changes',
+  'Nausea',
+  'Sleep changes',
+];
+
 export interface DailyLog {
   date: string;
   flow: Flow;
@@ -146,13 +163,13 @@ export const getPhase = (cycleDay: number, cycleLength: number, periodLength: nu
 
 const isBleedingFlow = (flow: Flow) => flow !== 'None' && flow !== 'Spotting';
 
-const getTrackedPeriodDays = (data: MoonData) =>
+export const getTrackedPeriodDays = (data: MoonData) =>
   Array.from(new Set([
     ...data.periodDays,
     ...Object.values(data.logs).filter((log) => isBleedingFlow(log.flow)).map((log) => log.date),
   ])).sort();
 
-const getPeriodEpisodes = (periodDays: string[]) => {
+export const getPeriodEpisodes = (periodDays: string[]) => {
   const episodes: string[][] = [];
   periodDays.forEach((date) => {
     const current = episodes[episodes.length - 1];

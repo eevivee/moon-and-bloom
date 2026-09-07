@@ -42,7 +42,7 @@ const getPhaseTimeline = (cycleLength: number, periodLength: number) => {
 };
 
 export default function TodayScreen() {
-  const { data, cycleDay, phase, nextPeriod, averageCycle, cycleRange, averagePeriod, currentPeriodStart } = useMoon();
+  const { data, cycleDay, phase, nextPeriod, daysUntilNext, averageCycle, cycleRange, averagePeriod, currentPeriodStart } = useMoon();
   const [showPhaseInfo, setShowPhaseInfo] = useState(false);
   const greeting = 'Welcome back';
   const today = todayISO();
@@ -80,7 +80,7 @@ export default function TodayScreen() {
 
     <SectionTitle eyebrow="A little context" title="Your Numbers" />
     <View style={styles.metricGrid}><Metric compact label="Average Cycle" value={`${averageCycle} days`} /><Metric compact label="Average Period" value={`${averagePeriod} days`} tone={palette.rose} /><Metric compact label="Cycle Range" value={cycleRange} tone={palette.plum} /></View>
-    <View style={[styles.metricGrid, { marginTop: 0 }]}><Metric compact label="Current Phase" value={phase} tone={palette.accentForeground} singleLine /><Metric compact label="Next Expected Period" value={formatDate(nextPeriod, { month: 'short', day: 'numeric' })} tone={palette.primary} /><Metric compact label="Last Menstrual Period" value={formatDate(currentPeriodStart, { month: 'short', day: 'numeric' })} tone={palette.plum} /></View>
+     <View style={[styles.metricGrid, { marginTop: 0 }]}><Metric compact label="Days Until Next Expected Period" value={`${Math.max(0, daysUntilNext)} days`} /><Metric compact label="Next Expected Period" value={formatDate(nextPeriod, { month: 'short', day: 'numeric' })} tone={palette.rose} /><Metric compact label="Last Menstrual Period (LMP)" value={formatDate(currentPeriodStart, { month: 'short', day: 'numeric' })} tone={palette.plum} /></View>
 
     <SectionTitle eyebrow="For this phase" title="Nourish & Restore" />
     <Card style={styles.suggestion} accent={palette.sage}>
